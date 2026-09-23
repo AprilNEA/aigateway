@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.1](https://github.com/AprilNEA/aigateway/compare/v0.6.0...v0.6.1) - 2026-09-23
+
+### Fixed
+- *(deps)* patch the rustls advisory and a yanked chacha20- *(aigw-openai)* accept chat envelopes without object or created
+
+### Miscellaneous
+- move actions off the removed Node 20 runtime- *(release)* release as aprilnea[bot] from AprilNEA/aigateway
+
 ## [0.6.0](https://github.com/arcboxlabs/aigateway/compare/v0.5.0...v0.6.0) - 2026-08-20
 
 ### Added

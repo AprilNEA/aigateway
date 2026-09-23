@@ -10,18 +10,18 @@ members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.6.0"
+version = "0.6.1"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/AprilNEA/aigateway"
 
 [workspace.dependencies]
-aigw = { version = "0.6.0", path = "providers/aigw" }
-aigw-core = { version = "0.6.0", path = "providers/aigw-core" }
-aigw-openai = { version = "0.6.0", path = "providers/aigw-openai" }
-aigw-openai-compat = { version = "0.6.0", path = "providers/aigw-openai-compat" }
-aigw-anthropic = { version = "0.6.0", path = "providers/aigw-anthropic" }
-aigw-gemini = { version = "0.6.0", path = "providers/aigw-gemini" }
+aigw = { version = "0.6.1", path = "providers/aigw" }
+aigw-core = { version = "0.6.1", path = "providers/aigw-core" }
+aigw-openai = { version = "0.6.1", path = "providers/aigw-openai" }
+aigw-openai-compat = { version = "0.6.1", path = "providers/aigw-openai-compat" }
+aigw-anthropic = { version = "0.6.1", path = "providers/aigw-anthropic" }
+aigw-gemini = { version = "0.6.1", path = "providers/aigw-gemini" }
 
 [package]
 name = "aigateway"
