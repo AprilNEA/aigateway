@@ -1,5 +1,5 @@
 [workspace]
-repo_url = "https://github.com/arcboxlabs/aigateway"
+repo_url = "https://github.com/AprilNEA/aigateway"
 semver_check = false
 publish_timeout = "10m"
 pr_labels = ["release"]
@@ -77,5 +77,5 @@ commit_parsers = [
 ]
 
 link_parsers = [
-    { pattern = "#(\\d+)", href = "https://github.com/arcboxlabs/aigateway/issues/$1" },
+    { pattern = "#(\\d+)", href = "https://github.com/AprilNEA/aigateway/issues/$1" },
 ]

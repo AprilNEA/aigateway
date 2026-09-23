@@ -61,7 +61,7 @@ jobs:
             os: windows-latest
             ext: zip
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Resolve version and asset name
         id: meta
@@ -112,7 +112,7 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path "target/${{ matrix.target }}/release/${{ env.BIN }}.exe" -DestinationPath "${{ steps.meta.outputs.asset }}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.meta.outputs.asset }}
           path: ${{ steps.meta.outputs.asset }}
@@ -134,7 +134,7 @@ jobs:
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
@@ -160,7 +160,7 @@ jobs:
           } > NOTES.md
           cat NOTES.md
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           body_path: dist/NOTES.md

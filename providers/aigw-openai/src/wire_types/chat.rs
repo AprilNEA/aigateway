@@ -242,10 +242,14 @@ pub struct ChatFunctionDefinition {
     pub extra: JsonObject,
 }
 
+/// `object` and `created` may be absent on input — OpenAI-compatible upstreams
+/// such as GitHub Copilot omit them — and are always serialized.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionResponse {
     pub id: String,
+    #[serde(default = "chat_completion_object")]
     pub object: String,
+    #[serde(default = "aigw_core::unix_now")]
     pub created: u64,
     pub model: String,
     pub choices: Vec<ChatCompletionResponseChoice>,
@@ -271,10 +275,14 @@ pub struct ChatCompletionResponseChoice {
     pub extra: JsonObject,
 }
 
+/// As with [`ChatCompletionResponse`], `object` and `created` may be absent on
+/// input; GitHub Copilot's chunks carry `created` but no `object`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionChunk {
     pub id: String,
+    #[serde(default = "chat_completion_chunk_object")]
     pub object: String,
+    #[serde(default = "aigw_core::unix_now")]
     pub created: u64,
     pub model: String,
     pub choices: Vec<ChatCompletionChunkChoice>,
@@ -284,6 +292,14 @@ pub struct ChatCompletionChunk {
     pub system_fingerprint: Option<String>,
     #[serde(flatten, default, skip_serializing_if = "json_object_is_empty")]
     pub extra: JsonObject,
+}
+
+fn chat_completion_object() -> String {
+    "chat.completion".to_owned()
+}
+
+fn chat_completion_chunk_object() -> String {
+    "chat.completion.chunk".to_owned()
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -13,7 +13,7 @@ resolver = "3"
 version = "0.6.0"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/arcboxlabs/aigateway"
+repository = "https://github.com/AprilNEA/aigateway"
 
 [workspace.dependencies]
 aigw = { version = "0.6.0", path = "providers/aigw" }

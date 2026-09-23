@@ -6,7 +6,7 @@
 
 Route requests across OpenAI, Anthropic, Google Gemini, and the entire OpenAI-compatible ecosystem — with native wire types, streaming SSE, and zero lowest-common-denominator abstractions.
 
-[![CI](https://github.com/arcboxlabs/aigateway/actions/workflows/ci.yml/badge.svg)](https://github.com/arcboxlabs/aigateway/actions/workflows/ci.yml)
+[![CI](https://github.com/AprilNEA/aigateway/actions/workflows/ci.yml/badge.svg)](https://github.com/AprilNEA/aigateway/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Rust](https://img.shields.io/badge/Rust-2024_edition-orange)
 

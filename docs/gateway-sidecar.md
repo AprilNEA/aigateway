@@ -199,7 +199,7 @@ Release, for tools like LinkCode's managed-asset catalog to download.
 
 - Archive members: `aigateway` (unix) / `aigateway.exe` (win), at the archive root.
 - Linux builds are fully static musl (no glibc, no OpenSSL — rustls).
-- Asset URL: `https://github.com/arcboxlabs/aigateway/releases/download/v<version>/<archive>`.
+- Asset URL: `https://github.com/AprilNEA/aigateway/releases/download/v<version>/<archive>`.
 - **Integrity**: a `SHA256SUMS` asset lists hex digests, and the release notes
   include an SRI column (`sha256-<base64>`) for each archive. The GitHub Release
   API also exposes each asset's `digest` (`sha256:<hex>`). SRI = base64 of the

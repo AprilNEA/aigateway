@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{JsonObject, json_object_is_empty};
+use crate::{JsonObject, json_object_is_empty, unix_now};
 
 use super::request::Message;
 
@@ -13,13 +13,18 @@ use super::request::Message;
 /// Follows the OpenAI `ChatCompletion` format: an envelope with a `choices`
 /// array. Providers that don't use choices (Anthropic, Gemini) produce a
 /// single-element `choices` array.
+///
+/// `object` and `created` are always serialized but may be absent on input:
+/// OpenAI-compatible upstreams such as GitHub Copilot omit them.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatResponse {
     /// Unique response ID.
     pub id: String,
     /// Object type — typically `"chat.completion"`.
+    #[serde(default = "chat_completion_object")]
     pub object: String,
-    /// Unix timestamp of creation.
+    /// Unix timestamp of creation; the time of receipt if the upstream omits it.
+    #[serde(default = "unix_now")]
     pub created: u64,
     /// Model that generated the response.
     pub model: String,
@@ -45,6 +50,10 @@ pub struct Choice {
     pub finish_reason: Option<FinishReason>,
     #[serde(flatten, default, skip_serializing_if = "json_object_is_empty")]
     pub extra: JsonObject,
+}
+
+fn chat_completion_object() -> String {
+    "chat.completion".to_owned()
 }
 
 // ─── FinishReason ───────────────────────────────────────────────────────────

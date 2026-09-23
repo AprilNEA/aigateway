@@ -26,6 +26,16 @@ pub fn json_object_is_empty(value: &JsonObject) -> bool {
     value.is_empty()
 }
 
+/// Current Unix time in seconds: the `created` stamp for a response that is
+/// synthesised by a translator, or received from an upstream that omits it.
+#[must_use]
+pub fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+}
+
 // ─── Generic utility types ─────────────────────────────────────────────────
 
 /// Forward-compatible wrapper for tagged enums.

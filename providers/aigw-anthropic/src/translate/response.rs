@@ -132,15 +132,10 @@ impl ResponseTranslator for AnthropicResponseTranslator {
             },
         };
 
-        let created = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-
         Ok(ChatResponse {
             id: native.id,
             object: "chat.completion".to_owned(),
-            created,
+            created: aigw_core::unix_now(),
             model: native.model,
             choices: vec![Choice {
                 index: 0,

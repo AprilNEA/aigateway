@@ -235,4 +235,23 @@ mod tests {
         let events = p.finish().unwrap();
         assert!(events.is_empty());
     }
+
+    #[test]
+    fn chunk_without_object_parses() {
+        // GitHub Copilot's chunks carry `created` but no `object`.
+        let mut p = parser();
+        let data = r#"{
+            "id": "chatcmpl-copilot",
+            "created": 1790163964,
+            "model": "gpt-4.1-2025-04-14",
+            "system_fingerprint": "fp_1",
+            "choices": [{ "index": 0, "delta": { "content": "hi" } }]
+        }"#;
+        let events = p.parse_event("", data).unwrap();
+        assert!(
+            events
+                .iter()
+                .any(|e| matches!(e, StreamEvent::ContentDelta(t) if t == "hi"))
+        );
+    }
 }
