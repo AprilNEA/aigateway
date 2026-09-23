@@ -193,4 +193,36 @@ mod tests {
 
         assert!(matches!(err, ProviderError::AuthenticationFailed { .. }));
     }
+
+    #[test]
+    fn translate_response_without_object_or_created() {
+        // GitHub Copilot's non-streaming envelope: no `object`, no `created`,
+        // plus a provider-specific `copilot_usage`.
+        let json = r#"{
+            "id": "chatcmpl-copilot",
+            "model": "gpt-4.1-2025-04-14",
+            "choices": [{
+                "index": 0,
+                "message": { "role": "assistant", "content": "pong" },
+                "finish_reason": "stop"
+            }],
+            "usage": { "prompt_tokens": 12, "completion_tokens": 2, "total_tokens": 14 },
+            "copilot_usage": { "premium_requests": 0 },
+            "service_tier": "default",
+            "system_fingerprint": "fp_1"
+        }"#;
+        let before = aigw_core::unix_now();
+        let resp = OpenAIResponseTranslator
+            .translate_response(StatusCode::OK, json.as_bytes())
+            .unwrap();
+
+        assert_eq!(resp.object, "chat.completion");
+        assert!(resp.created >= before);
+        assert!(resp.extra.contains_key("copilot_usage"));
+
+        // Re-serialized for clients, the envelope is complete again.
+        let out = serde_json::to_value(&resp).unwrap();
+        assert_eq!(out["object"], "chat.completion");
+        assert!(out["created"].as_u64().is_some());
+    }
 }

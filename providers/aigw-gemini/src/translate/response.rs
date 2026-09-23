@@ -100,15 +100,10 @@ pub(crate) fn native_to_canonical(native: GenerateContentResponse) -> ChatRespon
         .map(|(i, c)| candidate_to_choice(i as u32, c))
         .collect();
 
-    let created = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
-
     ChatResponse {
         id,
         object: "chat.completion".to_owned(),
-        created,
+        created: aigw_core::unix_now(),
         model,
         choices,
         usage,
