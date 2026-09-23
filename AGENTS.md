@@ -2,7 +2,7 @@
 
 A Rust workspace for a **protocol-faithful, multi-provider AI gateway** that routes requests across OpenAI, Anthropic, Google Gemini, and OpenAI-compatible providers with native wire types, streaming SSE, and zero lowest-common-denominator abstractions.
 
-**Repository:** [arcboxlabs/aigateway](https://github.com/arcboxlabs/aigateway)  
+**Repository:** [AprilNEA/aigateway](https://github.com/AprilNEA/aigateway)  
 **Edition:** Rust 2024, License: MIT
 
 ---
