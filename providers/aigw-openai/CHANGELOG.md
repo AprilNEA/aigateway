@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
 ## [0.6.1](https://github.com/AprilNEA/aigateway/compare/aigw-openai-v0.6.0...aigw-openai-v0.6.1) - 2026-09-23
 
 ### Fixed

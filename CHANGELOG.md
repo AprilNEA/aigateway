@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.0](https://github.com/AprilNEA/aigateway/compare/v0.6.1...v0.7.0) - 2026-09-24
+
+### Fixed
+- *(aigw-anthropic)* [**breaking**] spell cache_control ttl as the API does
+
 ## [0.6.1](https://github.com/AprilNEA/aigateway/compare/v0.6.0...v0.6.1) - 2026-09-23
 
 ### Fixed
