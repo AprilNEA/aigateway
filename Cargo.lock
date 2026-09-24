@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "aigateway"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "aigw",
  "aigw-anthropic",
@@ -41,7 +41,7 @@ dependencies = [
 
 [[package]]
 name = "aigw"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "aigw-anthropic",
  "aigw-gemini",
@@ -51,7 +51,7 @@ dependencies = [
 
 [[package]]
 name = "aigw-anthropic"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "aigw-core",
  "bon",
@@ -71,7 +71,7 @@ dependencies = [
 
 [[package]]
 name = "aigw-core"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "bon",
  "bytes",
@@ -84,7 +84,7 @@ dependencies = [
 
 [[package]]
 name = "aigw-gemini"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "aigw-core",
  "bon",
@@ -103,7 +103,7 @@ dependencies = [
 
 [[package]]
 name = "aigw-openai"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "aigw-core",
  "bon",
@@ -123,7 +123,7 @@ dependencies = [
 
 [[package]]
 name = "aigw-openai-compat"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "aigw-core",
  "aigw-openai",
