@@ -99,14 +99,37 @@ pub struct TextBlock {
 pub struct CacheControl {
     /// Cache type — currently only `"ephemeral"`.
     pub r#type: String,
-    /// Optional TTL in seconds. Defaults server-side to 5 minutes (300s).
-    /// Longer TTLs (e.g. 3600s = 1h) are available under the
-    /// `prompt-caching-scope-2026-01-05` beta. The Anthropic API requires
-    /// that any block with a longer TTL appear *before* any short-TTL
-    /// block in evaluation order (tools → system → messages); see
+    /// Optional cache lifetime. Absent means the server default of 5
+    /// minutes. The Anthropic API requires that any block with a longer TTL
+    /// appear *before* any short-TTL block in evaluation order
+    /// (tools → system → messages); see
     /// [`crate::translate::cache_control::normalize_ttl_ordering`].
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ttl: Option<u64>,
+    pub ttl: Option<CacheTtl>,
+}
+
+/// Lifetime of a prompt cache entry, as the API spells it (`"5m"`, `"1h"`).
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+pub enum CacheTtl {
+    /// Five minutes, the default.
+    #[serde(rename = "5m")]
+    FiveMinutes,
+    /// One hour.
+    #[serde(rename = "1h")]
+    OneHour,
+    /// Forward-compatible catch-all for durations added later.
+    #[serde(untagged)]
+    Other(String),
+}
+
+impl CacheTtl {
+    /// Whether this lifetime is longer than the 5-minute default. Unknown
+    /// values count as longer, so ordering normalisation strips them
+    /// rather than risking a rejected request.
+    #[must_use]
+    pub fn is_extended(&self) -> bool {
+        !matches!(self, Self::FiveMinutes)
+    }
 }
 
 /// Request metadata.

@@ -20,8 +20,8 @@
 //! [`AnthropicRequestTranslator`]: super::request::AnthropicRequestTranslator
 
 use crate::types::{
-    CacheControl, ContentBlock, MessageContent, MessagesRequest, Role, SystemPrompt, TextBlock,
-    TypedContentBlock,
+    CacheControl, CacheTtl, ContentBlock, MessageContent, MessagesRequest, Role, SystemPrompt,
+    TextBlock, TypedContentBlock,
 };
 
 /// Maximum number of `cache_control` markers Anthropic accepts per request.
@@ -117,14 +117,13 @@ pub fn ephemeral_marker() -> CacheControl {
     }
 }
 
-/// Build a `{ type: "ephemeral", ttl: <seconds> }` marker. Use this only
-/// if you've enabled the `prompt-caching-scope-2026-01-05` beta and want
-/// a longer-than-default cache lifetime.
+/// Build a `{ type: "ephemeral", ttl: <ttl> }` marker, e.g. with
+/// [`CacheTtl::OneHour`] for a longer-than-default cache lifetime.
 #[must_use]
-pub fn ephemeral_marker_with_ttl(ttl_seconds: u64) -> CacheControl {
+pub fn ephemeral_marker_with_ttl(ttl: CacheTtl) -> CacheControl {
     CacheControl {
         r#type: "ephemeral".to_owned(),
-        ttl: Some(ttl_seconds),
+        ttl: Some(ttl),
     }
 }
 
@@ -383,9 +382,9 @@ fn clear_cache_control(block: &mut ContentBlock, excess: &mut usize) {
 /// Normalize `cache_control.ttl` for `prompt-caching-scope-2026-01-05`.
 ///
 /// The API requires that, in evaluation order (tools → system → message
-/// content), no block with an explicit `ttl > 300` (i.e. anything longer
-/// than the default 5-minute lifetime) appears *after* a block with the
-/// default short TTL. Violating this returns HTTP 400.
+/// content), no block with an explicit TTL longer than the default 5
+/// minutes appears *after* a block with the default short TTL. Violating
+/// this returns HTTP 400.
 ///
 /// This function walks the request in evaluation order and strips the
 /// explicit `ttl` field from any longer-TTL block that follows a short
@@ -433,13 +432,16 @@ fn normalize_block_ttl(block: &mut ContentBlock, seen_short: &mut bool) {
             if let Some(cc_val) = obj.get_mut("cache_control")
                 && let serde_json::Value::Object(cc_obj) = cc_val
             {
-                let ttl = cc_obj.get("ttl").and_then(serde_json::Value::as_u64);
+                let ttl = cc_obj
+                    .get("ttl")
+                    .and_then(|v| serde_json::from_value::<CacheTtl>(v.clone()).ok());
                 match ttl {
-                    None | Some(0..=300) => *seen_short = true,
-                    Some(_) if *seen_short => {
-                        cc_obj.remove("ttl");
+                    Some(ttl) if ttl.is_extended() => {
+                        if *seen_short {
+                            cc_obj.remove("ttl");
+                        }
                     }
-                    _ => {}
+                    _ => *seen_short = true,
                 }
             }
         }
@@ -447,12 +449,13 @@ fn normalize_block_ttl(block: &mut ContentBlock, seen_short: &mut bool) {
 }
 
 fn normalize_ttl(cc: &mut CacheControl, seen_short: &mut bool) {
-    match cc.ttl {
-        None | Some(0..=300) => *seen_short = true,
-        Some(_) if *seen_short => {
-            cc.ttl = None;
+    match &cc.ttl {
+        Some(ttl) if ttl.is_extended() => {
+            if *seen_short {
+                cc.ttl = None;
+            }
         }
-        _ => {}
+        _ => *seen_short = true,
     }
 }
 
@@ -492,8 +495,8 @@ mod tests {
         }
     }
 
-    fn ephemeral_with_ttl(ttl: u64) -> CacheControl {
-        ephemeral_marker_with_ttl(ttl)
+    fn one_hour() -> CacheControl {
+        ephemeral_marker_with_ttl(CacheTtl::OneHour)
     }
 
     // ── Default strategy: 3-position injection ────────────────────────────
@@ -689,7 +692,7 @@ mod tests {
                 description: None,
                 input_schema: serde_json::json!({"type":"object"}),
                 // 1h → must be downgraded.
-                cache_control: Some(ephemeral_with_ttl(3600)),
+                cache_control: Some(one_hour()),
             },
         ]);
         normalize_ttl_ordering(&mut req);
@@ -707,19 +710,25 @@ mod tests {
                 name: "a".into(),
                 description: None,
                 input_schema: serde_json::json!({"type":"object"}),
-                cache_control: Some(ephemeral_with_ttl(3600)),
+                cache_control: Some(one_hour()),
             },
             Tool {
                 name: "b".into(),
                 description: None,
                 input_schema: serde_json::json!({"type":"object"}),
-                cache_control: Some(ephemeral_with_ttl(3600)),
+                cache_control: Some(one_hour()),
             },
         ]);
         normalize_ttl_ordering(&mut req);
         let tools = req.tools.as_ref().unwrap();
-        assert_eq!(tools[0].cache_control.as_ref().unwrap().ttl, Some(3600));
-        assert_eq!(tools[1].cache_control.as_ref().unwrap().ttl, Some(3600));
+        assert_eq!(
+            tools[0].cache_control.as_ref().unwrap().ttl,
+            Some(CacheTtl::OneHour)
+        );
+        assert_eq!(
+            tools[1].cache_control.as_ref().unwrap().ttl,
+            Some(CacheTtl::OneHour)
+        );
     }
 
     #[test]
@@ -735,13 +744,50 @@ mod tests {
         req.system = Some(SystemPrompt::Blocks(vec![TextBlock {
             r#type: "text".into(),
             text: "s".into(),
-            cache_control: Some(ephemeral_with_ttl(3600)),
+            cache_control: Some(one_hour()),
         }]));
         normalize_ttl_ordering(&mut req);
         let SystemPrompt::Blocks(blocks) = req.system.as_ref().unwrap() else {
             panic!()
         };
         assert!(blocks[0].cache_control.as_ref().unwrap().ttl.is_none());
+    }
+
+    #[test]
+    fn claude_code_style_ttl_strings_parse_and_normalize() {
+        // The API (and Claude Code) spell TTLs as strings.
+        let mut req: MessagesRequest = serde_json::from_value(serde_json::json!({
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 16,
+            "system": [
+                {"type": "text", "text": "a", "cache_control": {"type": "ephemeral", "ttl": "1h"}},
+                {"type": "text", "text": "b", "cache_control": {"type": "ephemeral", "ttl": "5m"}},
+            ],
+            "messages": [{"role": "user", "content": [
+                {"type": "text", "text": "hi", "cache_control": {"type": "ephemeral", "ttl": "1h"}},
+            ]}],
+        }))
+        .unwrap();
+        normalize_ttl_ordering(&mut req);
+        let body = serde_json::to_value(&req).unwrap();
+        assert_eq!(body["system"][0]["cache_control"]["ttl"], "1h");
+        assert_eq!(body["system"][1]["cache_control"]["ttl"], "5m");
+        // A 1h block after a 5m one loses its explicit TTL.
+        assert!(
+            body["messages"][0]["content"][0]["cache_control"]
+                .get("ttl")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn unknown_ttls_round_trip_and_count_as_extended() {
+        let cc: CacheControl =
+            serde_json::from_value(serde_json::json!({"type": "ephemeral", "ttl": "24h"})).unwrap();
+        assert_eq!(cc.ttl, Some(CacheTtl::Other("24h".into())));
+        assert!(cc.ttl.as_ref().unwrap().is_extended());
+        assert_eq!(serde_json::to_value(&cc).unwrap()["ttl"], "24h");
+        assert_eq!(serde_json::to_value(one_hour()).unwrap()["ttl"], "1h");
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────
